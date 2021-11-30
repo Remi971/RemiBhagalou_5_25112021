@@ -1,8 +1,3 @@
-// RECUPERATION DE L'ID (en utilisant URLSearchParams)
-let str = window.location.href;
-let url = new URL (str);
-let id = url.searchParams.get("id");
-
 //FONCTIONS
 // Fonction qui va créer une carte pour un produit en affichant les détails indiqué en paramètre
 const productInfo = (imgUrl, altTxt, name, price, description, colors ) => {
@@ -27,13 +22,6 @@ const productInfo = (imgUrl, altTxt, name, price, description, colors ) => {
     }
 }
 
-// CONNEXION AVEC le produit correspondant L'API (Requête fetch)
-fetch(`http://localhost:3000/api/products/${id}`)
-    .then(response => response.json())
-    .then(data => {
-         productInfo(data.imageUrl, data.altTxt, data.name, data.price, data.description, data.colors)
-    });
-
 // Function qui va stocker les infos sur le produit dans le LocalStorage
 const saveToCart = () => {
     // Rédcupération des informations fournies par l'utilisateur
@@ -54,6 +42,18 @@ const saveToCart = () => {
     }
     localStorage.setItem(key, JSON.stringify(myArray));
 }
+
+// RECUPERATION DE L'ID (en utilisant URLSearchParams)
+let str = window.location.href;
+let url = new URL (str);
+let id = url.searchParams.get("id");
+
+// CONNEXION AVEC le produit correspondant L'API (Requête fetch)
+fetch(`http://localhost:3000/api/products/${id}`)
+    .then(response => response.json())
+    .then(data => {
+         productInfo(data.imageUrl, data.altTxt, data.name, data.price, data.description, data.colors)
+    });
 
 //BOUTON 'Ajouter au panier'
 let addToCart = document.getElementById('addToCart');

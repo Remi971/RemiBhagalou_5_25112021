@@ -1,7 +1,4 @@
-console.log(localStorage);
-
 // FONCTIONS
-
 // Fonction qui va créer un objet javascript, un listant les info fournies par l'utilisateur (id, couleur et quantité) 
 const objCart = () => {
     // Info renseigné par l'utilisateur
@@ -26,7 +23,6 @@ const total = () => {
     let totalArticles = 0;
     let totalQuantity = 0;
     for (product of Object.keys(cart)) {
-        console.log(cart[product].price);
         totalArticles += cart[product].quantity * cart[product].price;
         totalQuantity += cart[product].quantity
         spanQuantity.innerText = totalQuantity;
@@ -50,14 +46,13 @@ const createElt = (type, setAttr = true, myArray, parentElement) => {
 
 // Fonction de création d'élément <article> pour chaque produit du panier
 const cartDisplay = (productId, productColor, imageUrl, altTxt, name, price, quantity) => {
-    // Construction d'une key
+    // Construction d'une key pour faire appelle aux infos du cart et du localStorage plus facilement
     let key = productId + '-' + productColor;
     // Ajout du prix des produits dans l'objet cart
     cart[key].price = price;
 
     //Sélection de la section produits
     let section = document.getElementById("cart__items");
-
     // Création de l'élément <article> qui va contenir le produit
     const article = document.createElement("article");
     // Ajout de l'élément <article> dans la section
@@ -67,9 +62,10 @@ const cartDisplay = (productId, productColor, imageUrl, altTxt, name, price, qua
     article.setAttribute("data-color", productColor);
     article.setAttribute("class", "cart__item");
 
+    //Création des différents éléments grâce à la fonction "createElt" qui vont être contenu dans l'élément article en affichant toutess les infos du produit
     const cartItemImg = createElt('div', true, [["class", "cart__item__img"]], article);
     const img = createElt('img', true, [["src", imageUrl], ["alt", altTxt]], cartItemImg);
-    const cartItemContent = createElt('div', true, [['class', "cart__item__content__description"]], article);
+    const cartItemContent = createElt('div', true, [['class', "cart__item__content"]], article);
     const cartItemContentDescription = createElt('div', true, [['class', 'cart__item__content__description']], cartItemContent);
     const h2 = createElt('h2', false, name, cartItemContentDescription);
     const pColor = createElt('p', false, productColor, cartItemContentDescription);
@@ -78,28 +74,35 @@ const cartDisplay = (productId, productColor, imageUrl, altTxt, name, price, qua
     const cartItemContentSettingsQuantity = createElt('div', true, [['class', 'cart__item__content__settings__quantity']], cartItemContentSettings);
     const pQuantity = createElt('p', false, 'Qté : ' + quantity, cartItemContentSettingsQuantity);
     const input = createElt('input', true, [["type", "number"], ["class", "itemQuantity"], ["name", "itemQuantity"], ["value", quantity]], cartItemContentSettingsQuantity);
-
-    // Modification des quantités des produits du panier
-    input.addEventListener('change', (e) => {
-        console.log(e.target.value)
-        pQuantity.innerText = 'Qté : ' + e.target.value;
-        cart[key].quantity = parseInt(e.target.value);
-        localStorage.setItem(key, JSON.stringify(cart[key]));
-        total();
-    });
-
     const cartItemContentSettingsDelete = createElt('div', true, [['class', 'cart__item__content__settings__delete']], cartItemContentSettings);
-
     const pDelete = createElt('p', true, [['class', 'deleteItem']], cartItemContentSettingsDelete);
     pDelete.innerText = 'Supprimer';
 
+    // Modification de la quantité d'un produits du panier
+    input.addEventListener('change', (e) => {
+        // Mise à jour du DOM
+        pQuantity.innerText = 'Qté : ' + e.target.value;
+        // Mise à jour de l'objet cart
+        cart[key].quantity = parseInt(e.target.value);
+        // Mise à jour du localStorage
+        localStorage.setItem(key, JSON.stringify(cart[key]));
+        // Mise à jour du total du panier
+        total();
+    });
+
     // Action de suppression du produit du panier au click du bouton "Supprimer"
     pDelete.addEventListener('click', () => {
+        // Mise à jour du DOM
         section.removeChild(article);
+        // Mise à jour de l'objet cart
         delete cart[key];
+        // Mise à jour du localStorage
         localStorage.removeItem(key);
+        // Mise à jour du total du panier
         total();
     })
+
+    // Mise à jour du total du panier
     total();
 }
 
@@ -116,7 +119,68 @@ const infoProduct = (cart) => {
 }
 
 let cart = objCart();
+console.log(localStorage);
 console.log('cart', cart);
 
 infoProduct(cart);
 
+// Formulaire de contact
+let firstName = document.getElementById('firstName')
+let lastName = document.getElementById('lastName')
+let address = document.getElementById('address')
+let city = document.getElementById('city')
+let email = document.getElementById('email')
+
+const check = () => {
+    if (!firstName.value.match(/[a-z]+/i)) {
+        let firstNameErrorMsg = document.getElementById('firstNameErrorMsg')
+        firstNameErrorMsg.innerText = 'Votre prénom est mal renseigné !'
+        return false;
+    }
+    if (!lastName.value.match(/[a-z]+/i)) {
+        let lastNameErrorMsg = document.getElementById('lastNameErrorMsg')
+        lastNameErrorMsg.innerText = 'Votre nom est mal renseigné !'
+        return false;
+    }
+    if (!city.value.match(/[a-z]+/i)) {
+        let cityErrorMsg = document.getElementById('cityErrorMsg')
+        cityErrorMsg.innerText = 'Le nom de votre ville est mal renseigné !'
+        return false;
+    }
+    if (!email.value.match(/@/)) {
+        let emailErrorMsg = document.getElementById('emailErrorMsg')
+        emailErrorMsg.innerText = 'Votre adresse email est mal renseignée !'
+        return false;
+    }
+
+    return true
+}
+
+document.getElementById('order').addEventListener('click', (e) => {
+    e.preventDefault();
+    let verification = check();
+    if (verification) {
+        let contact = {
+            firstName : firstName.value,
+            lastName : lastName.value,
+            address : address.value,
+            city : city.value,
+            email : email.value,
+        };
+        console.log(contact);
+        fetch('http://localhost:3000/api/products/order',{
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(contact)
+        })
+        .then(res => {
+            if (res.ok) {
+                return res.json();
+            }
+        })
+        .then(data => console.log(data));
+    }
+});
