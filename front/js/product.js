@@ -43,13 +43,13 @@ const saveToCart = () => {
     // Stockage des infos utilisateur dans un array
     let myArray = {id: id, color: color, quantity: quantity};
     // Nom du produit 
-    let key = 'product' + `${localStorage.length + 1}`;
+    let key = id + '-' + color;
 
     for (product of Object.keys(localStorage)) {
         let productArray = JSON.parse(localStorage.getItem(product));
-        if (productArray.id == myArray.id && productArray.color == myArray.color) {
+        if (productArray.id + '-' + productArray.color == myArray.id + '-' + myArray.color) {
             myArray.quantity = parseInt(myArray.quantity, 10) + parseInt(productArray.quantity, 10);
-            key = product;
+            key = myArray.id + '-' + myArray.color;
         }
     }
     localStorage.setItem(key, JSON.stringify(myArray));
