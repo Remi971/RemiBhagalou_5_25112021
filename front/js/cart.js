@@ -1,16 +1,21 @@
 // FONCTIONS
-// Fonction qui va créer un objet javascript, un listant les info fournies par l'utilisateur (id, couleur et quantité) 
+
+/**
+ * Crée un objet javascript en listant les infos du localStorage (id, couleur, quantité)
+ * @returns {Object}
+ */
 const objCart = () => {
-    // Info renseigné par l'utilisateur
     let myObj = {};
     // La création de cet objet s'appuie des informations stockées dans le localStorage
     for (product of Object.keys(localStorage)) {
+        if (product !== 'contact' && product !== 'products')
         myObj[product] = JSON.parse(localStorage.getItem(product));
     };
     return myObj;
 }
-
-// Fonction qui va calculer la somme totale des articles et leur prix
+/**
+ * Calcul la somme totale des articles et leur prix et l'affiche dans les HTMLElement correspondants
+ */
 const total = () => {
     let spanQuantity = document.getElementById('totalQuantity');
     let spanPrice = document.getElementById('totalPrice');
@@ -30,9 +35,17 @@ const total = () => {
     }
 }
 
-//Fonction de création d'élément
+/**
+ * Crée un élément en y ajoutant des attributs si setAttr = True, sinon en ajoutant du contenu avec innerText
+ * @param {String} type de l'élément à créer
+ * @param {Boolean} setAttr 
+ * @param {Array} myArray Liste comprenant des listes de couples [["nomAttribut", "valeurAttribut"], ["nomAttribut2", "valeurAttribut2"], ...]
+ * @param {HTMLElement} parentElement 
+ * @returns {HTMLElement}
+ */
 const createElt = (type, setAttr = true, myArray, parentElement) => {
     let element = document.createElement(type);
+    // si setAttr alors .setAttribute, sinon .innerTxt
     if (setAttr) {
         for (item in myArray) {
             element.setAttribute(myArray[item][0], myArray[item][1])
@@ -40,11 +53,22 @@ const createElt = (type, setAttr = true, myArray, parentElement) => {
     } else {
         element.innerText = myArray;
     }
+    // Ajout de l'élément à l'élément parent
     parentElement.appendChild(element);
     return element
 }
 
-// Fonction de création d'élément <article> pour chaque produit du panier
+
+/**
+ * Fonction de création d'élément <article> pour un produit
+ * @param {String} productId 
+ * @param {String} productColor 
+ * @param {String} imageUrl 
+ * @param {String} altTxt 
+ * @param {String} name 
+ * @param {Integer} price 
+ * @param {Integer} quantity 
+ */
 const cartDisplay = (productId, productColor, imageUrl, altTxt, name, price, quantity) => {
     // Construction d'une key pour faire appelle aux infos du cart et du localStorage plus facilement
     let key = productId + '-' + productColor;
@@ -62,7 +86,7 @@ const cartDisplay = (productId, productColor, imageUrl, altTxt, name, price, qua
     article.setAttribute("data-color", productColor);
     article.setAttribute("class", "cart__item");
 
-    //Création des différents éléments grâce à la fonction "createElt" qui vont être contenu dans l'élément article en affichant toutess les infos du produit
+    //Création des différents éléments grâce à la fonction "createElt" qui vont être contenu dans l'élément article en affichant toutes les infos du produit
     const cartItemImg = createElt('div', true, [["class", "cart__item__img"]], article);
     const img = createElt('img', true, [["src", imageUrl], ["alt", altTxt]], cartItemImg);
     const cartItemContent = createElt('div', true, [['class', "cart__item__content"]], article);
@@ -106,8 +130,14 @@ const cartDisplay = (productId, productColor, imageUrl, altTxt, name, price, qua
     total();
 }
 
-// Fonction qui va retrouver les infos complémentaires du produit et lancer la fonction "cartDisplay" pour chaque produit
-const infoProduct = (cart) => {
+
+/**
+ * Retrouve les informations complémentaires du produit et lance la fonction "cartDisplay" pour chaque produit du panier
+ * @returns 
+ */
+const infoProduct = () => {
+    cart = objCart();
+    console.log('cart', cart)
     for (produit of Object.keys(cart)) {
         let item = produit;
         fetch(`http://localhost:3000/api/products/${cart[produit].id}`)
@@ -118,19 +148,17 @@ const infoProduct = (cart) => {
     }
 }
 
-let cart = objCart();
-console.log(localStorage);
-console.log('cart', cart);
-
-infoProduct(cart);
-
 // Formulaire de contact
-let firstName = document.getElementById('firstName')
-let lastName = document.getElementById('lastName')
-let address = document.getElementById('address')
-let city = document.getElementById('city')
-let email = document.getElementById('email')
+let firstName = document.getElementById('firstName');
+let lastName = document.getElementById('lastName');
+let address = document.getElementById('address');
+let city = document.getElementById('city');
+let email = document.getElementById('email');
 
+/**
+ * Vérification des informations renseignées par l'utilisateur dans le formulaire
+ * @returns {Object} un objet contenant les informations contact de l'utilisateur
+ */
 const check = () => {
     if (!firstName.value.match(/[a-z]+/i)) {
         let firstNameErrorMsg = document.getElementById('firstNameErrorMsg')
@@ -153,34 +181,65 @@ const check = () => {
         return false;
     }
 
-    return true
+    let contact = {
+        firstName : firstName.value,
+        lastName : lastName.value,
+        address : address.value,
+        city : city.value,
+        email : email.value,
+    };
+
+    return contact;
 }
 
-document.getElementById('order').addEventListener('click', (e) => {
-    e.preventDefault();
-    let verification = check();
-    if (verification) {
-        let contact = {
-            firstName : firstName.value,
-            lastName : lastName.value,
-            address : address.value,
-            city : city.value,
-            email : email.value,
-        };
-        console.log(contact);
-        fetch('http://localhost:3000/api/products/order',{
+let str = window.location.href;
+let url = new URL (str);
+
+
+let cart = {};
+
+// Sur la page Panier
+if (/cart/.test(url)) {
+    let postContact = {};
+    let postProducts = [];
+    console.log(localStorage);
+    infoProduct(cart);
+    // Gestion du click sur 'Commander !'
+    document.getElementById('order').addEventListener('click', (e) => {
+        e.preventDefault();
+        postContact = check();
+        if (Object.keys(postContact).length > 0) {
+            for (product of Object.keys(cart)) {
+                postProducts.push(cart[product].id)
+            };
+            localStorage.setItem('contact', JSON.stringify(postContact));
+            localStorage.setItem('products', JSON.stringify(postProducts));
+            location.href = "confirmation.html";
+        }
+    })
+}
+// Sur la page confirmation
+if (/confirmation/.test(url)) {
+    let contact = JSON.parse(localStorage.getItem('contact'));
+    let products = JSON.parse(localStorage.getItem('products'));
+    console.log(contact);
+    console.log(products);
+    fetch('http://localhost:3000/api/products/order',{
             method: 'POST',
             headers: {
-                'Accept': 'application/json',
+                // 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(contact)
+            body: JSON.stringify({contact, products})
         })
         .then(res => {
             if (res.ok) {
-                return res.json();
+                return res.json()
+            }else {
+                console.log('Not successful !')
             }
+        }).then(data => {
+            let orderId = document.getElementById("orderId");
+            orderId.innerHTML = `<br/><strong>${data.orderId}</strong>`;
         })
-        .then(data => console.log(data));
-    }
-});
+}
