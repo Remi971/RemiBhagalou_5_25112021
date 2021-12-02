@@ -1,23 +1,18 @@
 //FONCTIONS
 // Fonction qui va créer une carte pour un produit en affichant les détails indiqué en paramètre
-const productInfo = (imgUrl, altTxt, name, price, description, colors ) => {
+const productInfo = (data ) => {
     //Création de l'élément img du produit
     const img = document.createElement('img');
-    img.setAttribute('src', imgUrl);
-    img.setAttribute('alt', altTxt);
-    // Ajout de l'élément dans la div prévu à cet effet
-    document.querySelector('.item__img').appendChild(img);
-    //Ajout du nom du produit dans l'élément h1 prévu
-    document.getElementById('title').innerHTML = name;
-    // Ajout du prix dnas l'élément span prévu
-    document.getElementById('price').innerHTML = price;
-    // Ajout de la description dans l'élément p prévu
-    document.getElementById('description').innerHTML = description;
-    // Pour chaque couleur du produit, une 
-    for (let color in colors) {
+    img.setAttribute('src', data.imageUrl);
+    img.setAttribute('alt', data.altTxt);
+    document.querySelector('.item__img').appendChild(img);// Ajout de l'élément dans la div prévu à cet effet
+    document.getElementById('title').innerHTML = data.name; //Ajout du nom du produit dans l'élément h1 prévu
+    document.getElementById('price').innerHTML = data.price;// Ajout du prix dnas l'élément span prévu
+    document.getElementById('description').innerHTML = data.description;// Ajout de la description dans l'élément p prévu
+    for (let color in data.colors) {// Pour chaque couleur du produit, une option est créée
         const optionColor = document.createElement('option');
-        optionColor.setAttribute('value', colors[color])
-        optionColor.innerHTML = colors[color]
+        optionColor.setAttribute('value', data.colors[color])
+        optionColor.innerHTML = data.colors[color]
         document.getElementById('colors').appendChild(optionColor)
     }
 }
@@ -28,12 +23,10 @@ const saveToCart = () => {
     let select = document.getElementById("colors")
     let color = select.options[select.selectedIndex].text
     let quantity = parseInt(document.getElementById("quantity").value, 10);
-    // Stockage des infos utilisateur dans un array
-    let myArray = {id: id, color: color, quantity: quantity};
-    // Nom du produit 
-    let key = id + '-' + color;
+    let myArray = {id: id, color: color, quantity: quantity};// Stockage des infos utilisateur dans un array
+    let key = id + '-' + color;// identifiant du produit 
 
-    for (product of Object.keys(localStorage)) {
+    for (product of Object.keys(localStorage)) { //Gestion du cas où le produit avec la même couleur est déjà présent dans le panier
         let productArray = JSON.parse(localStorage.getItem(product));
         if (productArray.id + '-' + productArray.color == myArray.id + '-' + myArray.color) {
             myArray.quantity = parseInt(myArray.quantity, 10) + parseInt(productArray.quantity, 10);
@@ -52,7 +45,7 @@ let id = url.searchParams.get("id");
 fetch(`http://localhost:3000/api/products/${id}`)
     .then(response => response.json())
     .then(data => {
-         productInfo(data.imageUrl, data.altTxt, data.name, data.price, data.description, data.colors)
+         productInfo(data)
     });
 
 //BOUTON 'Ajouter au panier'

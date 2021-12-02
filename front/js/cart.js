@@ -6,8 +6,7 @@
  */
 const objCart = () => {
     let myObj = {};
-    // La création de cet objet s'appuie des informations stockées dans le localStorage
-    for (product of Object.keys(localStorage)) {
+    for (product of Object.keys(localStorage)) {// La création de cet objet s'appuie des informations stockées dans le localStorage
         if (product !== 'contact' && product !== 'products')
         myObj[product] = JSON.parse(localStorage.getItem(product));
     };
@@ -19,8 +18,7 @@ const objCart = () => {
 const total = () => {
     let spanQuantity = document.getElementById('totalQuantity');
     let spanPrice = document.getElementById('totalPrice');
-    // En cas de panier vide
-    if (Object.keys(cart).length === 0) {
+    if (Object.keys(cart).length === 0) { // En cas de panier vide
         spanQuantity.innerText = 0;
         spanPrice.innerText = 0
         return
@@ -34,7 +32,6 @@ const total = () => {
         spanPrice.innerText = totalArticles;
     }
 }
-
 /**
  * Crée un élément en y ajoutant des attributs si setAttr = True, sinon en ajoutant du contenu avec innerText
  * @param {String} type de l'élément à créer
@@ -45,16 +42,14 @@ const total = () => {
  */
 const createElt = (type, setAttr = true, myArray, parentElement) => {
     let element = document.createElement(type);
-    // si setAttr alors .setAttribute, sinon .innerTxt
-    if (setAttr) {
+    if (setAttr) {// si setAttr alors .setAttribute, sinon .innerTxt
         for (item in myArray) {
             element.setAttribute(myArray[item][0], myArray[item][1])
         }
     } else {
         element.innerText = myArray;
     }
-    // Ajout de l'élément à l'élément parent
-    parentElement.appendChild(element);
+    parentElement.appendChild(element);// Ajout de l'élément à l'élément parent
     return element
 }
 
@@ -70,17 +65,12 @@ const createElt = (type, setAttr = true, myArray, parentElement) => {
  * @param {Integer} quantity 
  */
 const cartDisplay = (productId, productColor, imageUrl, altTxt, name, price, quantity) => {
-    // Construction d'une key pour faire appelle aux infos du cart et du localStorage plus facilement
-    let key = productId + '-' + productColor;
-    // Ajout du prix des produits dans l'objet cart
-    cart[key].price = price;
-
-    //Sélection de la section produits
-    let section = document.getElementById("cart__items");
-    // Création de l'élément <article> qui va contenir le produit
-    const article = document.createElement("article");
-    // Ajout de l'élément <article> dans la section
-    section.appendChild(article);
+    let key = productId + '-' + productColor;// Construction d'une key pour faire appelle aux infos du cart et du localStorage plus facilement
+    cart[key].price = price;// Ajout du prix des produits dans l'objet cart
+    
+    let section = document.getElementById("cart__items");//Sélection de la section produits
+    const article = document.createElement("article");// Création de l'élément <article> qui va contenir le produit
+    section.appendChild(article);// Ajout de l'élément <article> dans la section
     // Ajout des l'attribut data-id et data-color
     article.setAttribute("data-id", productId);
     article.setAttribute("data-color", productColor);
@@ -104,30 +94,21 @@ const cartDisplay = (productId, productColor, imageUrl, altTxt, name, price, qua
 
     // Modification de la quantité d'un produits du panier
     input.addEventListener('change', (e) => {
-        // Mise à jour du DOM
-        pQuantity.innerText = 'Qté : ' + e.target.value;
-        // Mise à jour de l'objet cart
-        cart[key].quantity = parseInt(e.target.value);
-        // Mise à jour du localStorage
-        localStorage.setItem(key, JSON.stringify(cart[key]));
-        // Mise à jour du total du panier
-        total();
+        pQuantity.innerText = 'Qté : ' + e.target.value;// Mise à jour du DOM
+        cart[key].quantity = parseInt(e.target.value);// Mise à jour de l'objet cart
+        localStorage.setItem(key, JSON.stringify(cart[key]));// Mise à jour du localStorage
+        total();// Mise à jour du total du panier
     });
 
     // Action de suppression du produit du panier au click du bouton "Supprimer"
     pDelete.addEventListener('click', () => {
-        // Mise à jour du DOM
-        section.removeChild(article);
-        // Mise à jour de l'objet cart
-        delete cart[key];
-        // Mise à jour du localStorage
-        localStorage.removeItem(key);
-        // Mise à jour du total du panier
-        total();
+        section.removeChild(article);// Mise à jour du DOM
+        delete cart[key];// Mise à jour de l'objet cart
+        localStorage.removeItem(key);// Mise à jour du localStorage
+        total();// Mise à jour du total du panier
     })
 
-    // Mise à jour du total du panier
-    total();
+    total();// Mise à jour du total du panier
 }
 
 
@@ -156,31 +137,50 @@ let city = document.getElementById('city');
 let email = document.getElementById('email');
 
 /**
+ * Génère un message d'erreur si toggle = false ou l'enlève si toggle = true
+ * @param {String} type 
+ * @param {Boolean} toggle 
+ */
+const errorMsg = (type, toggle=false) => {
+    let alertMsg = { // Objet qui va stocker les message d'erreur à afficher et les nom de class
+        firstName : {
+            msg: 'Votre prénom est mal renseigné !', 
+            className: 'firstNameErrorMsg'
+        },
+        lastName : {
+            msg: 'Votre nom est mal renseigné !', 
+            className: 'lastNameErrorMsg'
+        },
+        city : {
+            msg: 'Le nom de votre ville est mal renseigné !', 
+            className: 'cityErrorMsg'
+        },
+        address: {
+            msg: 'Votre adresse est mal renseignée !',
+            className: 'addressErrorMsg'
+        },
+        email: {
+            msg: 'Votre adresse email est mal renseignée !',
+            className: 'emailErrorMsg'
+        }
+    }
+    if (toggle) { 
+        document
+        .getElementById(alertMsg[type].className)
+        .innerText = ''
+    } else {
+        document
+        .getElementById(alertMsg[type].className)
+        .innerText = alertMsg[type].msg
+    }
+    
+}
+
+/**
  * Vérification des informations renseignées par l'utilisateur dans le formulaire
  * @returns {Object} un objet contenant les informations contact de l'utilisateur
  */
-const check = () => {
-    if (!firstName.value.match(/[a-z]+/i)) {
-        let firstNameErrorMsg = document.getElementById('firstNameErrorMsg')
-        firstNameErrorMsg.innerText = 'Votre prénom est mal renseigné !'
-        return false;
-    }
-    if (!lastName.value.match(/[a-z]+/i)) {
-        let lastNameErrorMsg = document.getElementById('lastNameErrorMsg')
-        lastNameErrorMsg.innerText = 'Votre nom est mal renseigné !'
-        return false;
-    }
-    if (!city.value.match(/[a-z]+/i)) {
-        let cityErrorMsg = document.getElementById('cityErrorMsg')
-        cityErrorMsg.innerText = 'Le nom de votre ville est mal renseigné !'
-        return false;
-    }
-    if (!email.value.match(/@/)) {
-        let emailErrorMsg = document.getElementById('emailErrorMsg')
-        emailErrorMsg.innerText = 'Votre adresse email est mal renseignée !'
-        return false;
-    }
-
+const check = () => { 
     let contact = {
         firstName : firstName.value,
         lastName : lastName.value,
@@ -188,13 +188,41 @@ const check = () => {
         city : city.value,
         email : email.value,
     };
-
+    let error = false
+    for (item of Object.keys(contact)) {
+        if (item === 'email') {
+            if (!contact[item].match(/@/)){
+                errorMsg(item);
+                error = true;
+            } else {
+                errorMsg(item, true)
+            }
+        }
+        else if (item === 'adresse') {
+            if (contact[item] === null || contact[item] === ' ') {
+                errorMsg(item);
+                error = true;
+            } else {
+                errorMsg(item, true)
+            }
+        }
+        else {
+            if (!contact[item].match(/[a-z]+/i)) {
+                errorMsg(item);
+                error = true;
+            } else {
+                errorMsg(item, true)
+            }
+        }
+    }
+    if (error) {
+        return false;
+    }
     return contact;
 }
 
 let str = window.location.href;
 let url = new URL (str);
-
 
 let cart = {};
 
