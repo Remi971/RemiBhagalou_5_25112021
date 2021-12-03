@@ -1,5 +1,4 @@
 // FONCTIONS
-
 /**
  * Crée un objet javascript en listant les infos du localStorage (id, couleur, quantité)
  * @returns {Object}
@@ -7,7 +6,7 @@
 const objCart = () => {
     let myObj = {};
     for (product of Object.keys(localStorage)) {// La création de cet objet s'appuie des informations stockées dans le localStorage
-        if (product !== 'contact' && product !== 'products')
+        if (product !== 'contact' && product !== 'products') // Ne stock pas les infos contact et liste produit
         myObj[product] = JSON.parse(localStorage.getItem(product));
     };
     return myObj;
@@ -36,23 +35,22 @@ const total = () => {
  * Crée un élément en y ajoutant des attributs si setAttr = True, sinon en ajoutant du contenu avec innerText
  * @param {String} type de l'élément à créer
  * @param {Boolean} setAttr 
- * @param {Array} myArray Liste comprenant des listes de couples [["nomAttribut", "valeurAttribut"], ["nomAttribut2", "valeurAttribut2"], ...]
+ * @param {Array || String} myArray Liste comprenant des listes de couples [["nomAttribut", "valeurAttribut"], ["nomAttribut2", "valeurAttribut2"], ...] si setAttr = True
  * @param {HTMLElement} parentElement 
  * @returns {HTMLElement}
  */
-const createElt = (type, setAttr = true, myArray, parentElement) => {
+const createElt = (type, setAttr = true, myAttr, parentElement) => {
     let element = document.createElement(type);
     if (setAttr) {// si setAttr alors .setAttribute, sinon .innerTxt
-        for (item in myArray) {
-            element.setAttribute(myArray[item][0], myArray[item][1])
+        for (item in myAttr) {
+            element.setAttribute(myAttr[item][0], myAttr[item][1])
         }
     } else {
-        element.innerText = myArray;
+        element.innerText = myAttr;
     }
     parentElement.appendChild(element);// Ajout de l'élément à l'élément parent
     return element
 }
-
 
 /**
  * Fonction de création d'élément <article> pour un produit
@@ -111,14 +109,12 @@ const cartDisplay = (productId, productColor, imageUrl, altTxt, name, price, qua
     total();// Mise à jour du total du panier
 }
 
-
 /**
  * Retrouve les informations complémentaires du produit et lance la fonction "cartDisplay" pour chaque produit du panier
  * @returns 
  */
 const infoProduct = () => {
     cart = objCart();
-    console.log('cart', cart)
     for (produit of Object.keys(cart)) {
         let item = produit;
         fetch(`http://localhost:3000/api/products/${cart[produit].id}`)
@@ -142,7 +138,7 @@ let email = document.getElementById('email');
  * @param {Boolean} toggle 
  */
 const errorMsg = (type, toggle=false) => {
-    let alertMsg = { // Objet qui va stocker les message d'erreur à afficher et les nom de class
+    let alertMsg = { // Objet qui va stocker les message d'erreur à afficher et les nom de class pour chaque type
         firstName : {
             msg: 'Votre prénom est mal renseigné !', 
             className: 'firstNameErrorMsg'
@@ -164,16 +160,15 @@ const errorMsg = (type, toggle=false) => {
             className: 'emailErrorMsg'
         }
     }
-    if (toggle) { 
+    if (toggle) { // si le champs est bien renseigné le message d'erreur disparaît
         document
         .getElementById(alertMsg[type].className)
         .innerText = ''
-    } else {
+    } else { // Le champs est mal renseigné, le message d'erreur apparaît
         document
         .getElementById(alertMsg[type].className)
         .innerText = alertMsg[type].msg
     }
-    
 }
 
 /**
@@ -188,29 +183,29 @@ const check = () => {
         city : city.value,
         email : email.value,
     };
-    let error = false
+    let error = false; // Si un champs est mal renseigné, error = true
     for (item of Object.keys(contact)) {
         if (item === 'email') {
-            if (!contact[item].match(/@/)){
+            if (!contact[item].match(/@/)){ // Erreur identifiée
                 errorMsg(item);
                 error = true;
-            } else {
+            } else { // Pas d'erreur
                 errorMsg(item, true)
             }
         }
         else if (item === 'adresse') {
-            if (contact[item] === null || contact[item] === ' ') {
+            if (contact[item] === null || contact[item] === ' ') { // Erreur identifiée
                 errorMsg(item);
                 error = true;
-            } else {
+            } else { // Pas d'erreur
                 errorMsg(item, true)
             }
         }
         else {
-            if (!contact[item].match(/[a-z]+/i)) {
+            if (!contact[item].match(/[a-z]+/i)) { // Erreur identifiée
                 errorMsg(item);
                 error = true;
-            } else {
+            } else { // Pas d'erreur
                 errorMsg(item, true)
             }
         }
@@ -230,7 +225,6 @@ let cart = {};
 if (/cart/.test(url)) {
     let postContact = {};
     let postProducts = [];
-    console.log(localStorage);
     infoProduct(cart);
     // Gestion du click sur 'Commander !'
     document.getElementById('order').addEventListener('click', (e) => {
@@ -250,9 +244,7 @@ if (/cart/.test(url)) {
 if (/confirmation/.test(url)) {
     let contact = JSON.parse(localStorage.getItem('contact'));
     let products = JSON.parse(localStorage.getItem('products'));
-    console.log(contact);
-    console.log(products);
-    fetch('http://localhost:3000/api/products/order',{
+    fetch('http://localhost:3000/api/products/order',{ // Envoie des objets contact et products au serveur
             method: 'POST',
             headers: {
                 // 'Accept': 'application/json',
@@ -266,7 +258,7 @@ if (/confirmation/.test(url)) {
             }else {
                 console.log('Not successful !')
             }
-        }).then(data => {
+        }).then(data => { // Récupération du numéro de commande
             let orderId = document.getElementById("orderId");
             orderId.innerHTML = `<br/><strong>${data.orderId}</strong>`;
         })

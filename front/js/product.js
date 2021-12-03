@@ -1,6 +1,10 @@
 //FONCTIONS
-// Fonction qui va créer une carte pour un produit en affichant les détails indiqué en paramètre
+/**
+ * Crée une carte pour un produit en affichant ses informations
+ * @param {Object} data 
+ */
 const productInfo = (data ) => {
+    document.title= data.name;//Nom du produit comme titre de la page
     //Création de l'élément img du produit
     const img = document.createElement('img');
     img.setAttribute('src', data.imageUrl);
@@ -17,7 +21,9 @@ const productInfo = (data ) => {
     }
 }
 
-// Function qui va stocker les infos sur le produit dans le LocalStorage
+/**
+ * Stock les informations sur le produit dans le localStorage
+ */
 const saveToCart = () => {
     // Rédcupération des informations fournies par l'utilisateur
     let select = document.getElementById("colors")
@@ -52,5 +58,5 @@ fetch(`http://localhost:3000/api/products/${id}`)
 let addToCart = document.getElementById('addToCart');
 addToCart.onclick = () => {
     saveToCart();
-    location.href = "cart.html";
+    location.href = "cart.html"; // Redirection vers la page panier
 }
